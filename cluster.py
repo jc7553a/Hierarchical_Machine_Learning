@@ -4,22 +4,26 @@ import random as ra
 import matplotlib.pyplot as plt
 import math
 import AutoencoderChildren as aeChild
-from getData import *
-import testingFunctions as jp
+import getData as data_collection
+import testingFunctions as test_func
+
+def check_percentage_difference(array):
+    minimum = min(array)
+    maximum = max(array)
+    difference = ((abs(maximum-minimum))/((maximum+minimum)/2))*100
+    return difference
 
 
 def train(data):
     n_features = len(data[0])-1
     network = ae.Autoencoder(n_features, int(n_features*.75))
     losses = []
-    for i in range(1):
+    for i in range(25):
         midLosses = []
-        for j in range(int(len(data)/2)):
-            rand = ra.randint(0, int(len(data)/2))
+        for j in range(len(data)):
+            rand = ra.randint(0, len(data))
             midLosses.append(network.partial_fit([data[rand][0:len(data[rand])-1]]))
         losses.append(np.average(midLosses))
-    #plt.plot(losses)
-    #plt.show()
     del losses
     return network
 
@@ -38,7 +42,7 @@ def onlineTrain(data, network):
 
     #plt.plot(losses)
     #plt.show()
-    splits = askQuestions(losses)
+    #splits = askQuestions(losses)
     return splits
                 
 
@@ -81,13 +85,18 @@ def testTree(network, data):
 
 
 if __name__ == '__main__':
-    data = importData('benignCancerNew.txt')
-    network = train(data)
-    split = onlineTrain(data, network)
-    if len(split) == 0:
-        print ("Done")
-    else:
-        network = doChildren(network, data, split)
+    '''Data Collection'''
+    data = data_collection.importData('covtype_norm.csv')
+    data_length = len(data)
+    training_length = int(len(data)*.25)
+    temp_training_data = data[0:training_length][:]
+    training_data = data_collection.splitTrainingData(temp_training_data, 1)
+    '''Garbage Cleanup'''
+    del temp_training_data
+    del data
+
+    '''Start Process of Training and Creating Hierarchical Tree'''
+    network = train(training_data)
     
     testTree(network, data)
     #err = test(network, newData)

@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 def normalize(train):
@@ -6,7 +7,7 @@ def normalize(train):
     train = np.array(train)
     shape = np.shape(train)
     k = 0
-    while k <shape[1]:
+    while k <shape[1]-1:
         maxim = 0
         minim = 0
         for i in range(shape[0]):
@@ -22,14 +23,18 @@ def normalize(train):
         k +=1
     return train
 
-def importData(file):
-    data = np.genfromtxt(file, delimiter = ',')
-    newData = []
+def splitTrainingData(data, classification):
+    training_data = []
+    class_val = len(data[0])-1
     for i in range(len(data)):
-        holder = []
-        for j in range(len(data[0])):
-            if j != 1:
-                holder.append(float(data[i][j]))
-            newData.append(holder)
-    newData = normalize(newData)
-    return newData
+        if data[i][class_val] == classification:
+            training_data.append(data[i][:])
+    return training_data
+
+def importData(file):
+    os.chdir('C:/Data_Sets')
+    data = np.genfromtxt(file, delimiter = ',')
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            data[i][j] = float(data[i][j])
+    return data
