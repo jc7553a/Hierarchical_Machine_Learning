@@ -12,7 +12,7 @@ def binning(array):
                 holding_bin.append(array[i])
         bins.append(holding_bin)
     bins2 = [x for x in bins if x != []]
-    return merging_bins(bins2)
+    return merging_bins(bins2, 100)
 
 
 def merging_bins(bins, min_bin):
