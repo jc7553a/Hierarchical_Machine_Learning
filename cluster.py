@@ -21,7 +21,7 @@ def train(data):
     losses = []
     '''Start Training Initial Autoencoder for some time'''
     print("Training Initial Autoencoder")
-    for i in range(25):
+    for i in range(15):
         for j in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             network.partial_fit([data[rand][0:n_features]])
@@ -55,7 +55,7 @@ def childrenTrain(network, children, data):
     print("Training Children")
     print(children[len(children)-1].getThresholdHigh())
     print(children[len(children)-1].getThresholdLow())
-    for j in range(25):
+    for j in range(15):
         for i in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             re = network.calc_total_cost([data[rand][0:len(data[rand])-1]])
@@ -69,9 +69,8 @@ def childrenTrain(network, children, data):
 
 def testTree(network, data):
     print("Testing The Tree Network")
-    half = int(len(data)/2)
     losses = []
-    for i in range(half):
+    for i in range(len(data)):
         myData = data[i][0:len(data[i])-1]
         losses.append(test_func.climbTree(network, myData))
 
@@ -83,7 +82,7 @@ def set_threshold(network, testing):
     for i in range(len(testing)):
         data_pass = testing[i][0:len(testing[i])-1]
         losses.append(test_func.climbTree(network, data_pass))
-    threshold = np.average(losses) + (3*(np.stdDev(losses)))
+    threshold = np.average(losses) + (3*(np.std(losses)))
     return threshold
         
 
@@ -113,7 +112,7 @@ if __name__ == '__main__':
     print("Starting to Look at Predicted Values")
     predicted_values = []
     for i in range(len(re)):
-        if re < threshold:
+        if re[i] < threshold:
             predicted_values.append(1)
         else:
             predicted_values.append(0)
