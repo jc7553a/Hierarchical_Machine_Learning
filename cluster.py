@@ -21,7 +21,7 @@ def train(data):
     losses = []
     '''Start Training Initial Autoencoder for some time'''
     print("Training Initial Autoencoder")
-    for i in range(15):
+    for i in range(25):
         for j in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             network.partial_fit([data[rand][0:n_features]])
@@ -55,7 +55,7 @@ def childrenTrain(network, children, data):
     print("Training Children")
     print(children[len(children)-1].getThresholdHigh())
     print(children[len(children)-1].getThresholdLow())
-    for j in range(15):
+    for j in range(25):
         for i in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             re = network.calc_total_cost([data[rand][0:len(data[rand])-1]])
