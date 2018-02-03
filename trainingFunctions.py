@@ -7,6 +7,7 @@ import binning
 done_training = True
 levels_created = 0
 
+'''Get percentage distance of smallest reconstruction error to largest'''
 def check_percentage_difference(array):
     minimum = min(array)
     maximum = max(array)
@@ -32,6 +33,13 @@ def initial_train(data):
         for j in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             network.partial_fit([data[rand][0:n_features]])
+    losses = []
+    for i in range(len(data)):
+        losses.append(network.calc_total_cost([data[i][0:n_features]]))
+    if check_percentage_difference(losses) > 150:
+        bins = binning.binning(losses)
+        for i in range(len(bins)):
+            network.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]),min(bins[i])))
     return network
 
 
@@ -123,6 +131,8 @@ def train_tree(root, data):
     
 def train(data):
     root = initial_train(data)                    #Intially Train the Root Node
-                                                  #Test for Splitting
-    root = train_tree(root, data)                 #Then Recursively Train Tree Network and add nodes until it passes the test
-    return root
+    if len(root.getChildren()) == 0:
+        return root
+    else:
+        root = train_tree(root, data)                 #Then Recursively Train Tree Network and add nodes until it passes the test
+        return root
