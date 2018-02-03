@@ -104,5 +104,5 @@ class Autoencoder(object):
     def setTrained(self, apply):
         self.trained = apply
 
-    def getTrained(self);
-    return self.trained
+    def getTrained(self):
+        return self.trained

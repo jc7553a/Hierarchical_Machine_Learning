@@ -1,14 +1,17 @@
 import random as ra
-import AutoencoderChild as aeChild
+import AutoencoderChildren as aeChild
 import binning
+import Autoencoder as ae
 
 
 '''global variable'''
 done_training = True
 levels_created = 0
+n_epochs = 1
 
 '''Get percentage distance of smallest reconstruction error to largest'''
 def check_percentage_difference(array):
+    print("Checking Percentage Difference")
     minimum = min(array)
     maximum = max(array)
     difference = ((abs(maximum-minimum))/((maximum+minimum)/2))*100
@@ -26,9 +29,10 @@ def findChild(children, re):
 
 '''Train the Root Initially with this function'''
 def initial_train(data):
+    global n_epochs
+    print("Start Training Root Node")
     n_features = len(data[0])-1
     network = ae.Autoencoder(n_features, int(n_features*.75))
-    n_epochs = 25
     for i in range(n_epochs):
         for j in range(len(data)):
             rand = ra.randint(0, len(data)-1)
@@ -45,53 +49,69 @@ def initial_train(data):
 
 '''After Root is Trained, Apply training to tree through traversal'''
 def traverse_train(root, reconstructed, re):
+    re = root.calc_total_cost([data])
+    reconstructed = root.reconstruct([data])
     temp = root
-    while (len(temp.getChildren()) != 0):
-                children = temp.getChildren()
-                if len(children) == 0:
-                    temp.partial_fit(reconstructed)
-                else:
-                    for k in range(len(children)):
-                        child = findChild(children, re)
-                    temp = child
-                    re = temp.calc_total_cost(reconstructed)
-                    reconstructed = temp.reconstruct(reconstructed)
+    children = temp.getChildren()
+    done  = True
+    while (done):
+        children = temp.getChildren()
+        if (len(children) == 0):
+            temp.partial_fit(reconstructed)
+            done = False
+        else:
+            child = findChild(children, re)
+            temp = child
+            re = temp.calc_total_cost(reconstructed)
+            reconstructed = temp.reconstruct(reconstructed)
 
                     
 ''' After Training Do an Epoch of Tests'''
 def traverse_test(root, data):
     re = root.calc_total_cost([data])
     reconstructed = root.reconstruct([data])
-    while (len(temp.getChildren()) != 0):
-                children = temp.getChildren()
-                if len(children) == 0:
-                    child_re = temp.calc_total_cost(reconstructed)
-                    temp.addLoss(child_re)
-                else:
-                    for k in range(len(children)):
-                        child = findChild(children, re)
-                    temp = child
-                    re = temp.calc_total_cost(reconstructed)
-                    reconstructed = temp.reconstruct(reconstructed)
+    temp = root
+    children = temp.getChildren()
+    done  = True
+    while (done):
+        children = temp.getChildren()
+        if (len(children) == 0):
+            child_re = temp.calc_total_cost(reconstructed)
+            temp.addLoss(child_re)
+            print(temp.getLosses())
+            done = False
+        else:
+            child = findChild(children, re)
+            temp = child
+            re = temp.calc_total_cost(reconstructed)
+            reconstructed = temp.reconstruct(reconstructed)
 
 def check_for_splitting(root, n_features):
     global done_training
-    for child in root.getChildren():
+    print("In splitting " + str(len(root.getChildren())))
+    children = root.getChildren()
+    for i in range (len(children)):
+        print(i)
+        child = children[i]
         if (len(child.getChildren())) == 0:
-            if check_percentage_difference(child.getLosses()) > 150:
+            print("Here")
+            print(child.getLosses())
+            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 150:
+                print("Farts")
                 bins= binning.binning(child.getLosses())
                 done_training = False
                 for i in range(len(bins)):
                     child.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]),min(bins[i])))
                     child.cleanUpLoss()
         else:
+            print(len(child.getLosses()))
             check_for_splitting(child, n_features)
                     
 '''After done training we will set all children to done trained'''
 def set_tree_network_to_trained(network):
     for net in network.getChildren():
         net.setTrained(True)
-        set_tree_network_to_trained(child)
+        set_tree_network_to_trained(net)
 
 '''checking to see if there are any nodes that haven't been trained'''
 def test_done_training(root):
@@ -103,13 +123,11 @@ def test_done_training(root):
 '''Recursively Train Tree until No more Creation of Levels to be done'''
 '''Or I set levels_created to 4 and then exit for now'''
 def train_tree(root, data):
-    global done_testing, levels_created
-    
+    global done_testing, levels_created, n_epochs
+    print("Training Tree Levels = " + str(levels_created))
     done_testing = True
-    if levels_created == 4:
+    if levels_created == 3:
         return root
-    
-    n_epochs = 25
     n_features = len(data[0])-1
     '''Train the Tree'''
     for i in range(n_epochs):
@@ -118,18 +136,22 @@ def train_tree(root, data):
             re = root.calc_total_cost([data[rand][0:n_features]])
             reconstructed = root.reconstruct([data[rand][0:n_features]])
             traverse_train(root, reconstructed, re)
-            
+    print("Done Training Setting Nodes to Trained")
     set_tree_network_to_trained(root)             #Set all Nodes to Trained
-    traverse_test(root, data)                     #Get Losses on 1 Epoch for all Children that are Leaves
+    for i in range(len(data)):
+        traverse_test(root, data[i][0:n_features])                     #Get Losses on 1 Epoch for all Children that are Leaves
+    print("Checking for Splits")
     check_for_splitting(root, n_features)         #See if any node needs to Split
     #test_done_training(root)                     #See if Any node hasn't been Trained (Probably Don't need this)
     levels_created +=1                            #Add 1 to level Created So we  have atleast an Exit point eventually
     if done_testing == True:                      #If all Nodes are Trained and Pass my splitting test, return the root
         return root
     else:
+        print("There was a split")
         train_tree(root, data)                    #Otherwise some node hasn't been trained and must now train it, through gating process
     
 def train(data):
+    print("Started Training")
     root = initial_train(data)                    #Intially Train the Root Node
     if len(root.getChildren()) == 0:
         return root

@@ -7,42 +7,9 @@ import AutoencoderChildren as aeChild
 import getData as data_collection
 import testingFunctions as test_func
 import binning
+import trainingFunctions as train
 
 
-
-def check_percentage_difference(array):
-    minimum = min(array)
-    maximum = max(array)
-    difference = ((abs(maximum-minimum))/((maximum+minimum)/2))*100
-    return difference
-
-
-def train(data):
-    n_features = len(data[0])-1
-    network = ae.Autoencoder(n_features, int(n_features*.75))
-    losses = []
-    '''Start Training Initial Autoencoder for some time'''
-    print("Training Initial Autoencoder")
-    for i in range(50):
-        for j in range(len(data)):
-            rand = ra.randint(0, len(data)-1)
-            network.partial_fit([data[rand][0:n_features]])
-    print("Checking Loss Values of Initial Autoencoder")
-    for i in range(len(data)):
-        losses.append(network.calc_total_cost([data[i][0:n_features]]))
-    print("checking perctage difference")
-    got_bins = False
-    if check_percentage_difference(losses) > 150:
-        bins = binning.binning(losses)
-        got_bins = True
-        print("Bins " + str(len(bins)))
-    print("Percentage Difference " + str(check_percentage_difference(losses)))
-    if got_bins:
-        for i in range(len(bins)):
-            network.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]), min(bins[i])))
-    network = childrenTrain(network, network.getChildren(), data)
-        
-    return network
 
 def test(auto, data):
     res = []
@@ -52,21 +19,6 @@ def test(auto, data):
     return res
 
                 
-
-def childrenTrain(network, children, data):
-    print("Training Children")
-    print(children[len(children)-1].getThresholdHigh())
-    print(children[len(children)-1].getThresholdLow())
-    for j in range(50):
-        for i in range(len(data)):
-            rand = ra.randint(0, len(data)-1)
-            re = network.calc_total_cost([data[rand][0:len(data[rand])-1]])
-            for k in range(len(children)):
-                child = children[k]
-                if child.getThresholdHigh() > re and child.getThresholdLow() < re:
-                    child_in_use = children[k]
-            child_in_use.partial_fit(network.reconstruct([data[rand][0:len(data[rand])-1]]))
-    return network
 
 
 def testTree(network, data):
@@ -104,7 +56,7 @@ if __name__ == '__main__':
     del data
 
     '''Start Process of Training and Creating Hierarchical Tree'''
-    network = train(training_data)
+    network = train.train(training_data)
 
     '''Create a Threshold'''
     threshold = set_threshold(network, testing_data[0:100][:])
