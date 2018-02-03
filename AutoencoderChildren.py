@@ -19,6 +19,7 @@ class Autoencoder(object):
         self.children = []
         self.threshold_H = threshHigh
         self.threshold_L = threshLow
+        self.losses = []
         
 
         network_weights = self._initialize_weights()
@@ -84,7 +85,14 @@ class Autoencoder(object):
     def getChildren(self):
         return self.children
 
+    def addLoss(self, loss):
+        self.losses.append(loss)
+
+    def getLosses(self):
+        return self.losses
+
     def getThresholdHigh(self):
         return self.threshold_H
+    
     def getThresholdLow(self):
         return self.threshold_L

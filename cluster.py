@@ -8,6 +8,8 @@ import getData as data_collection
 import testingFunctions as test_func
 import binning
 
+
+
 def check_percentage_difference(array):
     minimum = min(array)
     maximum = max(array)
@@ -21,7 +23,7 @@ def train(data):
     losses = []
     '''Start Training Initial Autoencoder for some time'''
     print("Training Initial Autoencoder")
-    for i in range(25):
+    for i in range(50):
         for j in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             network.partial_fit([data[rand][0:n_features]])
@@ -55,7 +57,7 @@ def childrenTrain(network, children, data):
     print("Training Children")
     print(children[len(children)-1].getThresholdHigh())
     print(children[len(children)-1].getThresholdLow())
-    for j in range(25):
+    for j in range(50):
         for i in range(len(data)):
             rand = ra.randint(0, len(data)-1)
             re = network.calc_total_cost([data[rand][0:len(data[rand])-1]])
@@ -82,7 +84,7 @@ def set_threshold(network, testing):
     for i in range(len(testing)):
         data_pass = testing[i][0:len(testing[i])-1]
         losses.append(test_func.climbTree(network, data_pass))
-    threshold = np.average(losses) + (3*(np.std(losses)))
+    threshold = np.average(losses) + (1*(np.std(losses)))
     return threshold
         
 
