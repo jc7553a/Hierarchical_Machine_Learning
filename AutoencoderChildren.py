@@ -20,7 +20,7 @@ class Autoencoder(object):
         self.threshold_H = threshHigh
         self.threshold_L = threshLow
         self.losses = []
-        self.apply_binning = False
+        self.trained = False
         
 
         network_weights = self._initialize_weights()
@@ -92,14 +92,17 @@ class Autoencoder(object):
     def getLosses(self):
         return self.losses
 
+    def cleanUpLoss(self):
+        self.losses = []
+        
     def getThresholdHigh(self):
         return self.threshold_H
     
     def getThresholdLow(self):
         return self.threshold_L
 
-    def setApplyBinning(self, apply):
-        self.apply_binning = apply
+    def setTrained(self, apply):
+        self.trained = apply
 
-    def getApplyBinning(self);
-    return self.apply_binning
+    def getTrained(self);
+    return self.trained

@@ -1,3 +1,28 @@
+import random as ra
+import AutoencoderChild as aeChild
+import binning
+
+
+'''global variable'''
+done_training = True
+levels_created = 0
+
+def check_percentage_difference(array):
+    minimum = min(array)
+    maximum = max(array)
+    difference = ((abs(maximum-minimum))/((maximum+minimum)/2))*100
+    return difference
+
+'''Helper Function to Find Child of Node that gets the data instance'''
+def findChild(children, re):
+    for i in range(len(children)):
+        child = children[i]
+        if re > child.getThresholdLow() and re < child.getThresholdHigh():
+            return child
+    return children[len(children)-1]
+
+
+
 '''Train the Root Initially with this function'''
 def initial_train(data):
     n_features = len(data[0])-1
@@ -9,17 +34,10 @@ def initial_train(data):
             network.partial_fit([data[rand][0:n_features]])
     return network
 
-'''Helper Function to Find Child of Node that gets the data instance'''
-def findChild(children, re):
-    for i in range(len(children)):
-        child = children[i]
-        if re > child.getThresholdLow() and re < child.getThresholdHigh():
-            return child
-    return children[len(children)-1]
-
 
 '''After Root is Trained, Apply training to tree through traversal'''
 def traverse_train(root, reconstructed, re):
+    temp = root
     while (len(temp.getChildren()) != 0):
                 children = temp.getChildren()
                 if len(children) == 0:
@@ -47,10 +65,64 @@ def traverse_test(root, data):
                     temp = child
                     re = temp.calc_total_cost(reconstructed)
                     reconstructed = temp.reconstruct(reconstructed)
-    
-    
 
+def check_for_splitting(root, n_features):
+    global done_training
+    for child in root.getChildren():
+        if (len(child.getChildren())) == 0:
+            if check_percentage_difference(child.getLosses()) > 150:
+                bins= binning.binning(child.getLosses())
+                done_training = False
+                for i in range(len(bins)):
+                    child.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]),min(bins[i])))
+                    child.cleanUpLoss()
+        else:
+            check_for_splitting(child, n_features)
+                    
+'''After done training we will set all children to done trained'''
+def set_tree_network_to_trained(network):
+    for net in network.getChildren():
+        net.setTrained(True)
+        set_tree_network_to_trained(child)
 
-def train(data):
-    root = initial_train(data)
+'''checking to see if there are any nodes that haven't been trained'''
+def test_done_training(root):
+    global done_training
+    for child in root.getChildren():
+        if child.getTrained() == False:
+            done_testing = False
+
+'''Recursively Train Tree until No more Creation of Levels to be done'''
+'''Or I set levels_created to 4 and then exit for now'''
+def train_tree(root, data):
+    global done_testing, levels_created
+    
+    done_testing = True
+    if levels_created == 4:
+        return root
+    
+    n_epochs = 25
+    n_features = len(data[0])-1
+    '''Train the Tree'''
+    for i in range(n_epochs):
+        for j in range(len(data)):
+            rand = ra.randint(0, len(data)-1)
+            re = root.calc_total_cost([data[rand][0:n_features]])
+            reconstructed = root.reconstruct([data[rand][0:n_features]])
+            traverse_train(root, reconstructed, re)
             
+    set_tree_network_to_trained(root)             #Set all Nodes to Trained
+    traverse_test(root, data)                     #Get Losses on 1 Epoch for all Children that are Leaves
+    check_for_splitting(root, n_features)         #See if any node needs to Split
+    #test_done_training(root)                     #See if Any node hasn't been Trained (Probably Don't need this)
+    levels_created +=1                            #Add 1 to level Created So we  have atleast an Exit point eventually
+    if done_testing == True:                      #If all Nodes are Trained and Pass my splitting test, return the root
+        return root
+    else:
+        train_tree(root, data)                    #Otherwise some node hasn't been trained and must now train it, through gating process
+    
+def train(data):
+    root = initial_train(data)                    #Intially Train the Root Node
+                                                  #Test for Splitting
+    root = train_tree(root, data)                 #Then Recursively Train Tree Network and add nodes until it passes the test
+    return root
