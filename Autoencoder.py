@@ -17,6 +17,7 @@ class Autoencoder(object):
         self.n_features = n_features
         self.n_hidden = n_hidden
         self.children = []
+        self.Id = "root"
 
         network_weights = self._initialize_weights()
         self.weights = network_weights
@@ -80,3 +81,5 @@ class Autoencoder(object):
 
     def getChildren(self):
         return self.children
+    def getId(self):
+        return self.Id

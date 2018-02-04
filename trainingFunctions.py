@@ -43,8 +43,9 @@ def initial_train(data):
         losses.append(network.calc_total_cost([data[i][0:n_features]]))
     if check_percentage_difference(losses) > 150:
         bins = binning.binning(losses)
-        for i in range(len(bins)):
-            network.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]),min(bins[i])))
+        if len(bins) > 1:
+            for i in range(len(bins)):
+                network.addChild(aeChild.Autoencoder(n_features, int(n_features*.75), max(bins[i]),min(bins[i])))
     return network
 
 
@@ -93,7 +94,7 @@ def check_for_splitting(root, n_features):
         if (len(child.getChildren())) == 0:
             print("Here")
             #print(child.getLosses())
-            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 10:
+            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 15:
                 #print("Farts")
                 bins= binning.binning(child.getLosses())
                 done_training = False
@@ -122,6 +123,7 @@ def test_done_training(root):
 def train_tree(root, data):
     global done_testing, levels_created, n_epochs
     print("Training Tree Levels = " + str(levels_created))
+    print("Checking root In Train Tree Id: " + str(root.getId()))
     done_testing = True
     if levels_created == 3:
         return root
@@ -153,5 +155,6 @@ def train(data):
     if len(root.getChildren()) == 0:
         return root
     else:
-        root = train_tree(root, data)                 #Then Recursively Train Tree Network and add nodes until it passes the test
+        print("Checking Root Begin Id: " +str(root.getId()))
+        train_tree(root, data)                 #Then Recursively Train Tree Network and add nodes until it passes the test
         return root
