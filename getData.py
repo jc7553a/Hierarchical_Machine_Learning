@@ -27,7 +27,7 @@ def splitTrainingData(data, classification):
     training_data = []
     class_val = len(data[0])-1
     for i in range(len(data)):
-        if data[i][class_val] == classification:
+        if data[i][class_val] != classification:
             training_data.append(data[i][:])
     return training_data
 

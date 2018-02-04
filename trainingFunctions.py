@@ -7,7 +7,7 @@ import Autoencoder as ae
 '''global variable'''
 done_training = True
 levels_created = 0
-n_epochs = 1
+n_epochs = 5
 
 '''Get percentage distance of smallest reconstruction error to largest'''
 def check_percentage_difference(array):
@@ -57,7 +57,8 @@ def traverse_train(root, reconstructed, re):
     while (done):
         children = temp.getChildren()
         if (len(children) == 0):
-            temp.partial_fit(reconstructed)
+            if temp.getTrained() == False:
+                temp.partial_fit(reconstructed)
             done = False
         else:
             child = findChild(children, re)
@@ -94,7 +95,7 @@ def check_for_splitting(root, n_features):
         if (len(child.getChildren())) == 0:
             print("Here")
             #print(child.getLosses())
-            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 15:
+            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 100:
                 #print("Farts")
                 bins= binning.binning(child.getLosses())
                 done_training = False

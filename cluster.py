@@ -48,7 +48,7 @@ if __name__ == '__main__':
     data_length = len(data)
     training_length = int(len(data)*.25)
     temp_training_data = data[0:training_length][:]
-    training_data = data_collection.splitTrainingData(temp_training_data, 1)
+    training_data = data_collection.splitTrainingData(temp_training_data, 4)
     testing_data = data[training_length:len(data)][:]
     
     '''Garbage Cleanup'''
@@ -74,13 +74,13 @@ if __name__ == '__main__':
     correct = 0
     incorrect = 0
     for i in range(len(testing_data)):
-        if predicted_values[i] == 1 and  testing_data[i][len(testing_data[i])-1] == 1:
+        if predicted_values[i] == 1 and  testing_data[i][len(testing_data[i])-1] != 4:
             correct +=1
-        if predicted_values[i] == 0 and testing_data[i][len(testing_data[i])-1] != 1:
+        if predicted_values[i] == 0 and testing_data[i][len(testing_data[i])-1] == 4:
             correct +=1
-        if predicted_values[i] == 1 and testing_data[i][len(testing_data[i])-1] != 1:
+        if predicted_values[i] == 1 and testing_data[i][len(testing_data[i])-1] == 4:
             incorrect +=1
-        if predicted_values[i] == 0 and testing_data[i][len(testing_data[i])-1] == 1:
+        if predicted_values[i] == 0 and testing_data[i][len(testing_data[i])-1] != 4:
             incorrect +=1
     print("Correct " + str(correct))
     print("Incorrect " + str(incorrect))
