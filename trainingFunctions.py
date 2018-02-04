@@ -15,6 +15,7 @@ def check_percentage_difference(array):
     minimum = min(array)
     maximum = max(array)
     difference = ((abs(maximum-minimum))/((maximum+minimum)/2))*100
+    print("Difference : " + str(difference))
     return difference
 
 '''Helper Function to Find Child of Node that gets the data instance'''
@@ -49,8 +50,6 @@ def initial_train(data):
 
 '''After Root is Trained, Apply training to tree through traversal'''
 def traverse_train(root, reconstructed, re):
-    re = root.calc_total_cost([data])
-    reconstructed = root.reconstruct([data])
     temp = root
     children = temp.getChildren()
     done  = True
@@ -78,7 +77,6 @@ def traverse_test(root, data):
         if (len(children) == 0):
             child_re = temp.calc_total_cost(reconstructed)
             temp.addLoss(child_re)
-            print(temp.getLosses())
             done = False
         else:
             child = findChild(children, re)
@@ -91,13 +89,12 @@ def check_for_splitting(root, n_features):
     print("In splitting " + str(len(root.getChildren())))
     children = root.getChildren()
     for i in range (len(children)):
-        print(i)
         child = children[i]
         if (len(child.getChildren())) == 0:
             print("Here")
-            print(child.getLosses())
-            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 150:
-                print("Farts")
+            #print(child.getLosses())
+            if len(child.getLosses()) > 0 and check_percentage_difference(child.getLosses()) > 10:
+                #print("Farts")
                 bins= binning.binning(child.getLosses())
                 done_training = False
                 for i in range(len(bins)):
@@ -144,7 +141,7 @@ def train_tree(root, data):
     check_for_splitting(root, n_features)         #See if any node needs to Split
     #test_done_training(root)                     #See if Any node hasn't been Trained (Probably Don't need this)
     levels_created +=1                            #Add 1 to level Created So we  have atleast an Exit point eventually
-    if done_testing == True:                      #If all Nodes are Trained and Pass my splitting test, return the root
+    if done_training == True:                      #If all Nodes are Trained and Pass my splitting test, return the root
         return root
     else:
         print("There was a split")
